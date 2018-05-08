@@ -134,15 +134,16 @@ describe('EngineDiscovery', () => {
       throw new Error('Should have thrown an error');
     });
 
-    it('should throw error if the first discovery failed', async () => {
-      listEnginesStub = sinon.stub(FakeDockerClient, 'listEngines').throws(new Error('Orchestration not responding'));
+    it('should be able to handle a non respons', async () => {
+      listEnginesStub = sinon.stub(FakeDockerClient, 'listEngines')
+        .onFirstCall()
+        .returns(engines1)
+        .throws(new Error('Orchestration not responding'));
       const engineDiscovery = new EngineDiscovery(FakeDockerClient, 20, 100000);
       await sleep(50);
 
-      try {
-        await engineDiscovery.list({});
-      } catch (err) { return; }
-      throw new Error('Should have thrown an error');
+      const listedEngines = await engineDiscovery.list({});
+      expect(listedEngines.length).to.equal(2);
     });
 
     it('should list all discovered engines if a previous but not last discovery was failed', async () => {
