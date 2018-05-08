@@ -1,22 +1,31 @@
 const EngineDiscovery = require('../../src/EngineDiscovery');
+const EngineEntry = require('../../src/EngineEntry');
 const sleep = require('../test-utils/sleep');
 
 describe('EngineDiscovery', () => {
   let FakeDockerClient;
   let listEnginesStub;
+  let engineDiscovery;
+  let startStatusChecks;
 
   before(() => {
     FakeDockerClient = { listEngines: () => [] };
+    startStatusChecks = sinon.stub(EngineEntry.prototype, 'startStatusChecks');
   });
+
 
   afterEach(() => {
     listEnginesStub.restore();
   });
 
+  after(() => {
+    startStatusChecks.restore();
+  });
+
   describe('#constructor()', () => {
     it('should construct and start periodical discovery scans', async () => {
       listEnginesStub = sinon.stub(FakeDockerClient, 'listEngines').returns([]);
-      const engineDiscovery = new EngineDiscovery(FakeDockerClient, 20, 5000);
+      engineDiscovery = new EngineDiscovery(FakeDockerClient, 20, 5000);
       await sleep(50);
       expect(engineDiscovery).to.not.be.null;
       expect(engineDiscovery).to.not.be.undefined;
@@ -117,21 +126,6 @@ describe('EngineDiscovery', () => {
       [first, second] = listedEngines;
       expect(first.engine).to.deep.equal(engine2.engine);
       expect(second.engine).to.deep.equal(engine3.engine);
-    });
-
-    it('should throw error if the last discovery was failed', async () => {
-      listEnginesStub = sinon.stub(FakeDockerClient, 'listEngines')
-        .onFirstCall()
-        .returns(engines1)
-        .throws(new Error('Orchestration not responding'));
-
-      const engineDiscovery = new EngineDiscovery(FakeDockerClient, 20, 100000);
-      await sleep(50);
-
-      try {
-        await engineDiscovery.list({});
-      } catch (err) { return; }
-      throw new Error('Should have thrown an error');
     });
 
     it('should be able to handle a non respons', async () => {
