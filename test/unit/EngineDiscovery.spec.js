@@ -5,7 +5,6 @@ const sleep = require('../test-utils/sleep');
 describe('EngineDiscovery', () => {
   let FakeDockerClient;
   let listEnginesStub;
-  let engineDiscovery;
   let startStatusChecks;
 
   before(() => {
@@ -25,7 +24,7 @@ describe('EngineDiscovery', () => {
   describe('#constructor()', () => {
     it('should construct and start periodical discovery scans', async () => {
       listEnginesStub = sinon.stub(FakeDockerClient, 'listEngines').returns([]);
-      engineDiscovery = new EngineDiscovery(FakeDockerClient, 20, 5000);
+      const engineDiscovery = new EngineDiscovery(FakeDockerClient, 20, 5000);
       await sleep(50);
       expect(engineDiscovery).to.not.be.null;
       expect(engineDiscovery).to.not.be.undefined;
