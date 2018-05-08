@@ -24,6 +24,7 @@ async function discover() {
     const keysToDelete = this.engineMap.difference(keys);
     keysToDelete.forEach((key) => {
       logger.info(`Engine removed: ${key}`);
+      logger.info(`this Engine was removed: ${JSON.stringify(this.engineMap.get(key))}`);
     });
     this.engineMap.delete(keysToDelete);
     engines.forEach((item) => {
@@ -41,12 +42,14 @@ async function discover() {
 
     if (!this.discoverySuccessful) {
       logger.info('Engine discovery recovered and working again');
+      logger.info(`Current new and shiny engine list: ${JSON.stringify(this.engineMap.all())}.`);
       this.discoverySuccessful = true;
     }
   } catch (err) {
     // Log error and delete engine cache if this is the first failure
     if (this.discoverySuccessful) {
       logger.error(`Unable to discover engines with error: ${err}.`);
+      logger.error(`Current engine list: ${JSON.stringify(this.engineMap.all())}.`);
       this.discoverySuccessful = false;
     }
   }
@@ -81,9 +84,6 @@ class EngineDiscovery {
    * @returns {Promise<EngineReturnSpec[]>} Promise to an array of engines.
    */
   async list(query) {
-    if (!this.discoverySuccessful) {
-      throw new Error('Last engine discovery failed');
-    }
 
     const engines = this.engineMap.all();
 
